@@ -1,0 +1,4 @@
+rails -v 2.3.8
+feed-normalizer --version 1.5.2
+inherited_resources --version 1.0.6
+

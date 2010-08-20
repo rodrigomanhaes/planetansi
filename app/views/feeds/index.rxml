@@ -1,0 +1,21 @@
+xml.instruct!
+
+xml.rss "version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/" do
+ xml.channel do
+   xml.title       "Planeta NSI"
+   xml.link        url_for :only_path => false, :controller => 'index'
+   xml.description "Textos e artigos dos membros do NSI"
+
+   @entries.each do |article|
+     xml.item do
+       author = article.author.include?('(') ? article.author.split('(')[1].chop : article.author
+       xml.title       "[#{author}] #{article.title}]"
+       xml.link        article.url
+       xml.description article.content
+       xml.guid        article.url
+       xml.pubDate     article.date_published || Date.today - 100.years
+     end
+   end
+ end
+end
+

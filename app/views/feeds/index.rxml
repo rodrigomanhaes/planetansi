@@ -13,7 +13,7 @@ xml.rss "version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/" do
        author = author.include?('(') ? author.split('(')[1].chop : author
        xml.title       "[#{author}] #{article.title}]"
        xml.link        article.link
-       xml.description article.description
+       xml.description article.try(:content_encoded) || article.description
        xml.guid        article.guid.content
        xml.pubDate     date_published
      end

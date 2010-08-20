@@ -8,14 +8,14 @@ xml.rss "version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/" do
 
    @entries.each do |article|
      xml.item do
-       date_published = article.date_published || Date.today - 100.years
-       author = article.author.include?('(') ? article.author.split('(')[1].chop : article.author
+       date_published = article.pubDate || Date.today - 100.years
+       author = article.author || article.try(:dc_creator) || ""
+       author = author.include?('(') ? author.split('(')[1].chop : author
        xml.title       "[#{author}] #{article.title}]"
-       xml.link        article.url
-       xml.description article.content
-       xml.guid        article.url
+       xml.link        article.link
+       xml.description article.description
+       xml.guid        article.guid.content
        xml.pubDate     date_published
-       xml.date        date_published
      end
    end
  end

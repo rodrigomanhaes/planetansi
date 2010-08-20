@@ -1,16 +1,14 @@
 require 'open-uri'
-require 'feed-normalizer'
+require 'rss'
 
 class Blog < ActiveRecord::Base
   validates_presence_of :url
   validates_uniqueness_of :url
 
   def entries
-    feeds = FeedNormalizer::FeedNormalizer.parse(open(url.strip)).entries
-    feeds.each do |feed|
-      feed.date_published ||= Date.today - 100.years
-    end
-    feeds
+    content = open(url).read
+    feeds = RSS::Parser.parse(content, false)
+    feeds.channel.items
   end
 end
 

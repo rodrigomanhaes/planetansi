@@ -4,7 +4,7 @@ class FeedsController < ApplicationController
       map(&:entries).
       flatten.
       compact.
-      sort_by(&:date_published).
+      sort_by(&:pubDate).
       reverse
     render :layout => false
     response.headers["Content-Type"] = "application/xml; charset=utf-8"

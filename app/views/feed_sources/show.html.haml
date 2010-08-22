@@ -1,0 +1,14 @@
+%p
+  %strong
+    Url:
+  =h @feed_source.url
+
+%p
+  %strong
+    Feed type:
+  =h @feed_source.feed_type
+
+= link_to 'Edit', edit_feed_source_path(@feed_source)
+|
+= link_to 'Back', feed_sources_path
+

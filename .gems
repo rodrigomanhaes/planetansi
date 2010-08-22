@@ -1,4 +1,6 @@
 rails -v 2.3.8
 feedzirra --version 0.0.24
 inherited_resources --version 1.0.6
+formtastic --version 0.9.10
+haml --version 3.0.13
 

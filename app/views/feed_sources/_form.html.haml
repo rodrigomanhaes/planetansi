@@ -1,0 +1,5 @@
+- semantic_form_for(@feed_source) do |form|
+  = form.input :url
+  = form.input :feed_type, :as => :select, :collection => FeedSource::FEED_TYPES
+  = form.commit_button 'Save'
+

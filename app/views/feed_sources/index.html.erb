@@ -1,0 +1,23 @@
+<h1>Listing feed_sources</h1>
+
+<table>
+  <tr>
+    <th>Url</th>
+    <th>Feed type</th>
+  </tr>
+
+<% @feed_sources.each do |feed_source| %>
+  <tr>
+    <td><%=h feed_source.url %></td>
+    <td><%=h feed_source.feed_type %></td>
+    <td><%= link_to 'Show', feed_source %></td>
+    <td><%= link_to 'Edit', edit_feed_source_path(feed_source) %></td>
+    <td><%= link_to 'Destroy', feed_source, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New feed_source', new_feed_source_path %>
+

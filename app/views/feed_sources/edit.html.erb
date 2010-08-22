@@ -1,0 +1,22 @@
+<h1>Editing feed_source</h1>
+
+<% form_for(@feed_source) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.label :url %><br />
+    <%= f.text_field :url %>
+  </p>
+    <p>
+    <%= f.label :feed_type %><br />
+    <%= f.select :feed_type, FeedSource::FEED_TYPES %>
+  </p>
+
+  <p>
+    <%= f.submit 'Update' %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @feed_source %> |
+<%= link_to 'Back', feed_sources_path %>
+

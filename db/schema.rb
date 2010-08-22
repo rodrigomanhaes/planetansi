@@ -9,12 +9,13 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20100820042939) do
+ActiveRecord::Schema.define(:version => 20100822030842) do
 
-  create_table "blogs", :force => true do |t|
+  create_table "feed_sources", :force => true do |t|
     t.string   "url"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "feed_type"
   end
 
 end

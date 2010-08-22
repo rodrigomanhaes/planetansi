@@ -1,7 +1,7 @@
 require 'open-uri'
 require 'rss'
 
-class Blog < ActiveRecord::Base
+class FeedSource < ActiveRecord::Base
   validates_presence_of :url
   validates_uniqueness_of :url
 
@@ -10,5 +10,15 @@ class Blog < ActiveRecord::Base
     feeds = RSS::Parser.parse(content, false)
     feeds.channel.items
   end
+
+  def self.blogs
+    find_all_by_feed_type 'Blog'
+  end
+
+  def self.githubs
+    find_all_by_feed_type 'Github'
+  end
+
+  FEED_TYPES = %w{Blog Github}
 end
 

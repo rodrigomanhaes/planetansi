@@ -1,14 +1,12 @@
-require 'open-uri'
-require 'rss'
+require 'feedzirra'
 
 class FeedSource < ActiveRecord::Base
   validates_presence_of :url
   validates_uniqueness_of :url
 
   def entries
-    content = open(url).read
-    feeds = RSS::Parser.parse(content, false)
-    feeds.channel.items
+    feeds = Feedzirra::Feed.fetch_and_parse(url)
+    feeds.entries
   end
 
   def self.blogs

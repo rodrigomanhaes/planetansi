@@ -6,16 +6,16 @@ xml.rss "version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/" do
    xml.link        url_for :only_path => false, :controller => 'index'
    xml.description @type
 
-   @entries.each do |article|
+   @entries.each do |entry|
      xml.item do
-       date_published = article.pubDate || Date.today - 100.years
-       author = article.author || article.try(:dc_creator) || ""
+       date_published = entry.published || Date.today - 100.years
+       author = entry.author
        author = author.include?('(') ? author.split('(')[1].chop : author
-       xml.title       "[#{author}] #{article.title}"
-       xml.link        article.link
-       xml.description article.try(:content_encoded) || article.description
-       xml.guid        article.guid.content
-       xml.pubDate     date_published
+       xml.title       "[#{author}] #{entry.title}"
+       xml.link        entry.url
+       xml.description entry.content.present? ? entry.content : entry.summary
+       xml.guid        entry.id
+       xml.pubDate     date_published.to_s(:rfc822)
      end
    end
  end

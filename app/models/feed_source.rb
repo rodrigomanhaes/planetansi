@@ -6,17 +6,31 @@ class FeedSource < ActiveRecord::Base
 
   def entries
     feeds = Feedzirra::Feed.fetch_and_parse(url)
-    feeds.entries
+    feeds.entries.each do |entry|
+      entry.author = entry.author.split('(')[1].chop if entry.author.include?('(')
+      entry.content = entry.summary unless entry.content.present?
+    end
   end
 
   def self.blogs
-    find_all_by_feed_type 'Blog'
+    handle(find_all_by_feed_type 'Blog')
   end
 
   def self.githubs
-    find_all_by_feed_type 'Github'
+    handle(find_all_by_feed_type 'Github')
   end
 
   FEED_TYPES = %w{Blog Github}
+
+  private
+
+  def self.handle(raw_entries)
+    raw_entries.
+      map(&:entries).
+      flatten.
+      compact.
+      sort_by(&:published).
+      reverse
+  end
 end
 

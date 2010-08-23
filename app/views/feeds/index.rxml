@@ -4,18 +4,15 @@ xml.rss "version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/" do
  xml.channel do
    xml.title       "Planeta NSI"
    xml.link        url_for :only_path => false, :controller => 'index'
-   xml.description @type
+   xml.description @subtitle
 
    @entries.each do |entry|
      xml.item do
-       date_published = entry.published || Date.today - 100.years
-       author = entry.author
-       author = author.include?('(') ? author.split('(')[1].chop : author
-       xml.title       "[#{author}] #{entry.title}"
+       xml.title       "[#{entry.author}] #{entry.title}"
        xml.link        entry.url
        xml.description entry.content.present? ? entry.content : entry.summary
        xml.guid        entry.id
-       xml.pubDate     date_published.to_s(:rfc822)
+       xml.pubDate     entry.published.to_s(:rfc822)
      end
    end
  end

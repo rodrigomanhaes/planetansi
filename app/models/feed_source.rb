@@ -10,6 +10,11 @@ class FeedSource < ActiveRecord::Base
       entry.author = entry.author.split('(')[1].chop if entry.author.include?('(')
       entry.content = entry.summary unless entry.content.present?
     end
+    feeds.entries.reject do |entry|
+      github? &&
+      (entry.title =~ /started following/ ||
+       entry.title =~ /started watching/)
+    end
   end
 
   def self.blogs
@@ -23,6 +28,10 @@ class FeedSource < ActiveRecord::Base
   FEED_TYPES = %w{Blog Github}
 
   private
+
+  def github?
+    feed_type == 'Github'
+  end
 
   def self.handle(raw_entries)
     raw_entries.

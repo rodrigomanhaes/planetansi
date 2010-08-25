@@ -71,6 +71,28 @@ describe FeedSource do
     end
   end
 
+  context 'github' do
+    def stub_entry(description)
+      stub(:title => description,
+           :author => "doesn't matter",
+           :content => "doesn't matter")
+    end
+
+    it 'does not distribute feeds about followings and watchings' do
+      feed_source = FeedSource.new :url => 'some_url'
+      Feedzirra::Feed.stub(:fetch_and_parse).with('some_url').
+        and_return(stub(:entries => [entry_stub = stub_entry('nada'),
+                                     stub_entry('martinfowler started following planetansi'),
+                                     stub_entry('linustorvalds started watching planetansi')]))
+      feed_source.feed_type = 'Blog'
+      feed_source.should have(3).entries
+
+      feed_source.feed_type = 'Github'
+      feed_source.should have(1).entries
+      feed_source.entries.should == [entry_stub]
+    end
+  end
+
   context 'handling idiosyncrasies' do
 
     context 'parentheses in author field' do

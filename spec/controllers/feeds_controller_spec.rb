@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'feed_validator'
 
 describe FeedsController do
   context 'common behavior' do

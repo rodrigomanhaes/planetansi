@@ -94,7 +94,6 @@ describe FeedSource do
   end
 
   context 'handling idiosyncrasies' do
-
     context 'parentheses in author field' do
       # blogger gives author in the form "e-mail (name)"
       it 'removes text parentheses and e-mail if exist' do
@@ -141,6 +140,16 @@ describe FeedSource do
         entries_mock.should_not_receive(:content=)
         feed_source.entries
       end
+    end
+  end
+
+  context 'something wrong happens' do
+    it 'gracefully returns nil for a shitty feed object' do
+      object_that_doesnt_have_entries = Object.new
+      Feedzirra::Feed.stub(:fetch_and_parse).
+                      and_return(object_that_doesnt_have_entries)
+      feed_source = FeedSource.new :url => 'some_url'
+      feed_source.entries.should be_nil
     end
   end
 

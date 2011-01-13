@@ -10,6 +10,7 @@ class FeedSource < ActiveRecord::Base
       feeds.entries.each do |entry|
         entry.author = entry.author.split('(')[1].chop if entry.author.include?('(')
         entry.content = entry.summary unless entry.content.present?
+        entry.published = DateTime.parse(entry.published) if entry.published
       end
       feeds.entries.reject do |entry|
         github? &&

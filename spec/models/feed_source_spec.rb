@@ -9,7 +9,8 @@ describe FeedSource do
 
   def stub_feed
     @entries_result = [stub(:author => "",
-                            :content => "need to have something here")]
+                            :content => "need to have something here",
+                            :published => nil)]
     stub(:entries => @entries_result)
   end
 
@@ -31,7 +32,7 @@ describe FeedSource do
 
   context 'entries handling' do
     def stub_published(count = 1, value = Time.now)
-      result = Array.new(count) { stub(:published => value, :to_ary => nil) }
+      result = Array.new(count) { stub(:published => value, :published= => nil, :to_ary => nil) }
       count == 1 ? result.first : result
     end
 
@@ -75,7 +76,9 @@ describe FeedSource do
     def stub_entry(description)
       stub(:title => description,
            :author => "doesn't matter",
-           :content => "doesn't matter")
+           :content => "doesn't matter",
+           :published => nil,
+           :published= => nil)
     end
 
     it 'does not distribute feeds about followings and watchings' do
@@ -101,7 +104,7 @@ describe FeedSource do
         Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
                         and_return(stub(:entries => [entries_mock = stub(
                             :author => 'rodrigo@fanatismoindeciso.com (rodrigo manhaes)',
-                            :content => "doesn't matter")]))
+                            :content => "doesn't matter", :published => nil)]))
         entries_mock.should_receive(:author=).with('rodrigo manhaes')
         feed_source.entries
       end
@@ -111,7 +114,8 @@ describe FeedSource do
         Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
                         and_return(stub(:entries => [entries_mock = stub(
                             :author => 'rodrigo manhaes',
-                            :content => "doesn't matter")]))
+                            :content => "doesn't matter",
+                            :published => nil)]))
         entries_mock.should_not_receive(:author=)
         feed_source.entries
       end
@@ -126,7 +130,8 @@ describe FeedSource do
                   and_return(stub(:entries => [entries_mock = stub(
                       :content => "",
                       :summary => 'a summary',
-                      :author => "doesn't matter")]))
+                      :author => "doesn't matter",
+                      :published => nil)]))
         entries_mock.should_receive(:content=).with('a summary')
         feed_source.entries
       end
@@ -136,8 +141,22 @@ describe FeedSource do
         Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
                   and_return(stub(:entries => [entries_mock = stub(
                       :content => "I'm present, therefore I am!",
-                      :author => "doesn't matter")]))
+                      :author => "doesn't matter",
+                      :published => nil)]))
         entries_mock.should_not_receive(:content=)
+        feed_source.entries
+      end
+    end
+
+    context 'published is string' do
+      it 'converts published to date time' do
+        feed_source = FeedSource.new :url => 'some_url'
+        Feedzirra::Feed.stub(:fetch_and_parse).with('some_url').
+                  and_return(stub(:entries => [entries_mock = stub(
+                      :content => "doesn't matter",
+                      :author => "doesn't matter",
+                      :published => '03 Oct 2008 13:48:00 +0000')]))
+        entries_mock.should_receive(:published=).with(DateTime.parse('03 Oct 2008 13:48:00 +0000'))
         feed_source.entries
       end
     end

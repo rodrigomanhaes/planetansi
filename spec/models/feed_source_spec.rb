@@ -23,7 +23,7 @@ describe FeedSource do
 
   def stub_feed
     @entries_result = [FakeEntry.new(:author => "",
-                                     :content => "need to have something here"]
+                                     :content => "need to have something here")]
     stub(:entries => @entries_result)
   end
 
@@ -106,24 +106,27 @@ describe FeedSource do
   end
 
   context 'handling idiosyncrasies' do
+    def ensure_idiosyncrasy(entry_options)
+      feed_source = FeedSource.new :url => 'some_url'
+      entry = FakeEntry.new(entry_options)
+      Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
+                      and_return(stub(:entries => [entry]))
+      feed_source.entries
+      yield(entry)
+    end
+
     context 'parentheses in author field' do
       # blogger gives author in the form "e-mail (name)"
       it 'removes text parentheses and e-mail if exist' do
-        feed_source = FeedSource.new :url => 'some_url'
-        entry_mock = FakeEntry.new :author => 'rodrigo@fanatismoindeciso.com (rodrigo manhaes)'
-        Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
-                        and_return(stub(:entries => [entry_mock]))
-        entry_mock.should_receive(:author=).with('rodrigo manhaes')
-        feed_source.entries
+        ensure_idiosyncrasy(:author => 'rodrigo@fanatismoindeciso.com (rodrigo manhaes)') do |entry|
+          entry.author.should == 'rodrigo manhaes'
+        end
       end
 
       it 'does not modify author if there is not any parenthesis' do
-        feed_source = FeedSource.new :url => 'some_url'
-        entry_mock = FakeEntry.new :author => 'rodrigo manhaes'
-        Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
-                        and_return(stub(:entries => [entry_mock]))
-        entry_mock.should_not_receive(:author=)
-        feed_source.entries
+        ensure_idiosyncrasy(:author => 'rodrigo manhaes') do |entry|
+          entry.author.should == 'rodrigo manhaes'
+        end
       end
     end
 
@@ -131,32 +134,23 @@ describe FeedSource do
       # blogger puts whole text in 'content' field, and part of it in 'summary'
       # wordpress puts whole text in 'summary' field and nothing in 'content'
       it 'replaces content by summary if content is not present' do
-        feed_source = FeedSource.new :url => 'some_url'
-        entry_mock = FakeEntry.new(:content => "", :summary => 'a summary')
-        Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
-                  and_return(stub(:entries => [entry_mock]))
-        entry_mock.should_receive(:content=).with('a summary')
-        feed_source.entries
+        ensure_idiosyncrasy(:content => "", :summary => 'a summary') do |entry|
+          entry.content.should == 'a summary'
+        end
       end
 
       it 'does not modify content if it is present' do
-        feed_source = FeedSource.new :url => 'some_url'
-        entry_mock = FakeEntry.new(:content => "I'm present, therefore I am!")
-        Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
-                  and_return(stub(:entries => [entry_mock]))
-        entry_mock.should_not_receive(:content=)
-        feed_source.entries
+        ensure_idiosyncrasy(:content => "I'm present, therefore I am!") do |entry|
+          entry.content.should == "I'm present, therefore I am!"
+        end
       end
     end
 
     context 'published is string' do
       it 'converts published to date time' do
-        feed_source = FeedSource.new :url => 'some_url'
-        entry_mock = FakeEntry.new(:published => '03 Oct 2008 13:48:00 +0000')
-        Feedzirra::Feed.stub(:fetch_and_parse).with('some_url').
-                  and_return(stub(:entries => [entry_mock]))
-        entry_mock.should_receive(:published=).with(DateTime.parse('03 Oct 2008 13:48:00 +0000'))
-        feed_source.entries
+        ensure_idiosyncrasy(:published => '03 Oct 2008 13:48:00 +0000') do |entry|
+          entry.published.should == DateTime.parse('03 Oct 2008 13:48:00 +0000')
+        end
       end
     end
   end

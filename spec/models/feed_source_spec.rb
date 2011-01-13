@@ -108,6 +108,7 @@ describe FeedSource do
   context 'handling idiosyncrasies' do
     def ensure_idiosyncrasy(entry_options)
       feed_source = FeedSource.new :url => 'some_url'
+      feed_source.feed_type = entry_options.delete(:feed_type) if entry_options.has_key?(:feed_type)
       entry = FakeEntry.new(entry_options)
       Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
                       and_return(stub(:entries => [entry]))
@@ -150,6 +151,22 @@ describe FeedSource do
       it 'converts published to date time' do
         ensure_idiosyncrasy(:published => '03 Oct 2008 13:48:00 +0000') do |entry|
           entry.published.should == DateTime.parse('03 Oct 2008 13:48:00 +0000')
+        end
+      end
+    end
+
+    context 'relative github links' do
+      it 'converts /something links into https://github.com/something' do
+        ensure_idiosyncrasy(:content => '<a href="/something">who cares?</a>',
+                            :feed_type => 'Github') do |entry|
+          entry.content.should == '<a href="https://github.com/something">who cares?</a>'
+        end
+      end
+
+      it 'leaves content unchanged for non-github feeds' do
+          ensure_idiosyncrasy(:content => '<a href="/something">who cares?</a>',
+                            :feed_type => 'other') do |entry|
+          entry.content.should == '<a href="/something">who cares?</a>'
         end
       end
     end

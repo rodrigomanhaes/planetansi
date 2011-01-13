@@ -3,7 +3,7 @@ xml.instruct!
 xml.rss "version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/" do
  xml.channel do
    xml.title       "Planeta NSI"
-   xml.link        url_for :only_path => false, :controller => 'index'
+   xml.link        url_for :only_path => false, :controller => 'feeds'
    xml.description @subtitle
 
    @entries.each do |entry|
@@ -12,7 +12,7 @@ xml.rss "version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/" do
        xml.link        entry.url
        xml.description entry.content.present? ? entry.content : entry.summary
        xml.guid        entry.id
-       xml.pubDate     entry.published.to_s(:rfc822)
+       xml.pubDate     entry.published.to_s
      end
    end
  end

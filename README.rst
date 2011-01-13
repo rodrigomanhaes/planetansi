@@ -12,3 +12,9 @@ http://planetansi.heroku.com/feeds/githubs (adivinhe)
 
 Maiores informações sobre o NSI em http://nsi.iff.edu.br
 
+
+Como instalar
+--------------
+
+A gem `feedzirra` requer a instalação do pacote `libcurl3-dev`.
+

@@ -31,7 +31,7 @@ describe FeedSource do
 
   context 'entries handling' do
     def stub_published(count = 1, value = Time.now)
-      result = Array.new(count) { stub(:published => value) }
+      result = Array.new(count) { stub(:published => value, :to_ary => nil) }
       count == 1 ? result.first : result
     end
 
@@ -62,7 +62,7 @@ describe FeedSource do
 
     it 'sorts descending by the "published" field' do
       def s(days)
-        stub(:published => Date.today + days.days)
+        stub(:published => Date.today + days.days, :to_ary => nil)
       end
 
       @fs1.stub(:entries).and_return([s0 = s(0), s2 = s(2), s_1 = s(-1)])

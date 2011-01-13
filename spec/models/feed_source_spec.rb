@@ -1,6 +1,20 @@
 require 'spec_helper'
 require 'feedzirra'
 
+class FakeEntry
+  def initialize(options)
+    @author = options[:author] || "anything"
+    @content = options[:content]
+    @published = options[:published]
+    @title = options[:title]
+    @summary = options[:summary]
+  end
+
+  attr_accessor :author, :content, :published, :summary, :title
+
+  def to_ary; nil; end
+end
+
 describe FeedSource do
   context 'validations' do
     should_validate_presence_of :url
@@ -8,9 +22,8 @@ describe FeedSource do
   end
 
   def stub_feed
-    @entries_result = [stub(:author => "",
-                            :content => "need to have something here",
-                            :published => nil)]
+    @entries_result = [FakeEntry.new(:author => "",
+                                     :content => "need to have something here"]
     stub(:entries => @entries_result)
   end
 
@@ -32,7 +45,7 @@ describe FeedSource do
 
   context 'entries handling' do
     def stub_published(count = 1, value = Time.now)
-      result = Array.new(count) { stub(:published => value, :published= => nil, :to_ary => nil) }
+      result = Array.new(count) { FakeEntry.new(:published => value) }
       count == 1 ? result.first : result
     end
 
@@ -63,7 +76,7 @@ describe FeedSource do
 
     it 'sorts descending by the "published" field' do
       def s(days)
-        stub(:published => Date.today + days.days, :to_ary => nil)
+        FakeEntry.new(:published => Date.today + days.days)
       end
 
       @fs1.stub(:entries).and_return([s0 = s(0), s2 = s(2), s_1 = s(-1)])
@@ -73,20 +86,16 @@ describe FeedSource do
   end
 
   context 'github' do
-    def stub_entry(description)
-      stub(:title => description,
-           :author => "doesn't matter",
-           :content => "doesn't matter",
-           :published => nil,
-           :published= => nil)
+    def fake_entry(description)
+      FakeEntry.new(:title => description)
     end
 
     it 'does not distribute feeds about followings and watchings' do
       feed_source = FeedSource.new :url => 'some_url'
       Feedzirra::Feed.stub(:fetch_and_parse).with('some_url').
-        and_return(stub(:entries => [entry_stub = stub_entry('nada'),
-                                     stub_entry('martinfowler started following planetansi'),
-                                     stub_entry('linustorvalds started watching planetansi')]))
+        and_return(stub(:entries => [entry_stub = fake_entry('nada'),
+                                     fake_entry('martinfowler started following planetansi'),
+                                     fake_entry('linustorvalds started watching planetansi')]))
       feed_source.feed_type = 'Blog'
       feed_source.should have(3).entries
 
@@ -101,22 +110,19 @@ describe FeedSource do
       # blogger gives author in the form "e-mail (name)"
       it 'removes text parentheses and e-mail if exist' do
         feed_source = FeedSource.new :url => 'some_url'
+        entry_mock = FakeEntry.new :author => 'rodrigo@fanatismoindeciso.com (rodrigo manhaes)'
         Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
-                        and_return(stub(:entries => [entries_mock = stub(
-                            :author => 'rodrigo@fanatismoindeciso.com (rodrigo manhaes)',
-                            :content => "doesn't matter", :published => nil)]))
-        entries_mock.should_receive(:author=).with('rodrigo manhaes')
+                        and_return(stub(:entries => [entry_mock]))
+        entry_mock.should_receive(:author=).with('rodrigo manhaes')
         feed_source.entries
       end
 
       it 'does not modify author if there is not any parenthesis' do
         feed_source = FeedSource.new :url => 'some_url'
+        entry_mock = FakeEntry.new :author => 'rodrigo manhaes'
         Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
-                        and_return(stub(:entries => [entries_mock = stub(
-                            :author => 'rodrigo manhaes',
-                            :content => "doesn't matter",
-                            :published => nil)]))
-        entries_mock.should_not_receive(:author=)
+                        and_return(stub(:entries => [entry_mock]))
+        entry_mock.should_not_receive(:author=)
         feed_source.entries
       end
     end
@@ -126,24 +132,19 @@ describe FeedSource do
       # wordpress puts whole text in 'summary' field and nothing in 'content'
       it 'replaces content by summary if content is not present' do
         feed_source = FeedSource.new :url => 'some_url'
+        entry_mock = FakeEntry.new(:content => "", :summary => 'a summary')
         Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
-                  and_return(stub(:entries => [entries_mock = stub(
-                      :content => "",
-                      :summary => 'a summary',
-                      :author => "doesn't matter",
-                      :published => nil)]))
-        entries_mock.should_receive(:content=).with('a summary')
+                  and_return(stub(:entries => [entry_mock]))
+        entry_mock.should_receive(:content=).with('a summary')
         feed_source.entries
       end
 
       it 'does not modify content if it is present' do
         feed_source = FeedSource.new :url => 'some_url'
+        entry_mock = FakeEntry.new(:content => "I'm present, therefore I am!")
         Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
-                  and_return(stub(:entries => [entries_mock = stub(
-                      :content => "I'm present, therefore I am!",
-                      :author => "doesn't matter",
-                      :published => nil)]))
-        entries_mock.should_not_receive(:content=)
+                  and_return(stub(:entries => [entry_mock]))
+        entry_mock.should_not_receive(:content=)
         feed_source.entries
       end
     end
@@ -151,12 +152,10 @@ describe FeedSource do
     context 'published is string' do
       it 'converts published to date time' do
         feed_source = FeedSource.new :url => 'some_url'
+        entry_mock = FakeEntry.new(:published => '03 Oct 2008 13:48:00 +0000')
         Feedzirra::Feed.stub(:fetch_and_parse).with('some_url').
-                  and_return(stub(:entries => [entries_mock = stub(
-                      :content => "doesn't matter",
-                      :author => "doesn't matter",
-                      :published => '03 Oct 2008 13:48:00 +0000')]))
-        entries_mock.should_receive(:published=).with(DateTime.parse('03 Oct 2008 13:48:00 +0000'))
+                  and_return(stub(:entries => [entry_mock]))
+        entry_mock.should_receive(:published=).with(DateTime.parse('03 Oct 2008 13:48:00 +0000'))
         feed_source.entries
       end
     end

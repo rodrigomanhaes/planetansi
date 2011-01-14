@@ -6,21 +6,17 @@ class FeedSource < ActiveRecord::Base
 
   def entries
     feeds = Feedzirra::Feed.fetch_and_parse(url)
-    begin
-      feeds.entries.each do |entry|
-        entry.author = feeds.title if entry.author.blank?
-        entry.author = entry.author.split('(')[1].chop if entry.author.include?('(')
-        entry.content = entry.summary unless entry.content.present?
-        entry.content.gsub!('href="/', 'href="https://github.com/') if entry.content.present? && github?
-        entry.published = DateTime.parse(entry.published) if entry.published
-      end
-      feeds.entries.reject do |entry|
-        github? &&
-        (entry.title =~ /started following/ ||
-         entry.title =~ /started watching/)
-      end
-    rescue NoMethodError
-      nil
+    feeds.entries.each do |entry|
+      entry.author = feeds.title if entry.author.blank?
+      entry.author = entry.author.split('(')[1].chop if entry.author.include?('(')
+      entry.content = entry.summary unless entry.content.present?
+      entry.content.gsub!('href="/', 'href="https://github.com/') if entry.content.present? && github?
+      entry.published = DateTime.parse(entry.published) if entry.published
+    end
+    feeds.entries.reject do |entry|
+      github? &&
+      (entry.title =~ /started following/ ||
+       entry.title =~ /started watching/)
     end
   end
 

@@ -184,16 +184,6 @@ describe FeedSource do
     end
   end
 
-  context 'something wrong happens' do
-    it 'gracefully returns nil for a shitty feed object' do
-      object_that_doesnt_have_entries = Object.new
-      Feedzirra::Feed.stub(:fetch_and_parse).
-                      and_return(object_that_doesnt_have_entries)
-      feed_source = FeedSource.new :url => 'some_url'
-      feed_source.entries.should be_nil
-    end
-  end
-
   before :each do
     FeedSource.create! :url => 'http://a.com/feed', :feed_type => 'Blog'
   end

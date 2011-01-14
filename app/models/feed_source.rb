@@ -11,7 +11,7 @@ class FeedSource < ActiveRecord::Base
       entry.author = entry.author.split('(')[1].chop if entry.author.include?('(')
       entry.content = entry.summary unless entry.content.present?
       entry.content.gsub!('href="/', 'href="https://github.com/') if entry.content.present? && github?
-      entry.published = DateTime.parse(entry.published) if entry.published
+      entry.published = DateTime.parse(entry.published) if entry.published.kind_of?(String)
     end
     feeds.entries.reject do |entry|
       github? &&

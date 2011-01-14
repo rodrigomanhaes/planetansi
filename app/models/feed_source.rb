@@ -8,6 +8,7 @@ class FeedSource < ActiveRecord::Base
     feeds = Feedzirra::Feed.fetch_and_parse(url)
     begin
       feeds.entries.each do |entry|
+        entry.author = feeds.title if entry.author.blank?
         entry.author = entry.author.split('(')[1].chop if entry.author.include?('(')
         entry.content = entry.summary unless entry.content.present?
         entry.content.gsub!('href="/', 'href="https://github.com/') if entry.content.present? && github?

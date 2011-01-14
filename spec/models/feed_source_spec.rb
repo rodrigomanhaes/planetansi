@@ -2,8 +2,8 @@ require 'spec_helper'
 require 'feedzirra'
 
 class FakeEntry
-  def initialize(options)
-    @author = options[:author] || "anything"
+  def initialize(options = {})
+    @author = options[:author]
     @content = options[:content]
     @published = options[:published]
     @title = options[:title]
@@ -24,7 +24,7 @@ describe FeedSource do
   def stub_feed
     @entries_result = [FakeEntry.new(:author => "",
                                      :content => "need to have something here")]
-    stub(:entries => @entries_result)
+    stub(:entries => @entries_result, :title => '')
   end
 
 
@@ -95,7 +95,8 @@ describe FeedSource do
       Feedzirra::Feed.stub(:fetch_and_parse).with('some_url').
         and_return(stub(:entries => [entry_stub = fake_entry('nada'),
                                      fake_entry('martinfowler started following planetansi'),
-                                     fake_entry('linustorvalds started watching planetansi')]))
+                                     fake_entry('linustorvalds started watching planetansi')],
+                        :title => ''))
       feed_source.feed_type = 'Blog'
       feed_source.should have(3).entries
 
@@ -111,7 +112,7 @@ describe FeedSource do
       feed_source.feed_type = entry_options.delete(:feed_type) if entry_options.has_key?(:feed_type)
       entry = FakeEntry.new(entry_options)
       Feedzirra::Feed.should_receive(:fetch_and_parse).with('some_url').
-                      and_return(stub(:entries => [entry]))
+                      and_return(stub(:entries => [entry], :title => ''))
       feed_source.entries
       yield(entry)
     end
@@ -168,6 +169,17 @@ describe FeedSource do
                             :feed_type => 'other') do |entry|
           entry.content.should == '<a href="/something">who cares?</a>'
         end
+      end
+    end
+
+    context 'author field is blank' do
+      it 'puts blog title as author' do
+         Feedzirra::Feed.stub(:fetch_and_parse).
+                         and_return(stub(:entries => [FakeEntry.new],
+                                         :title => 'My cool blog'))
+         FeedSource.stub(:find_all_by_feed_type).
+                    and_return([FeedSource.new])
+         FeedSource.blogs[0].author.should == 'My cool blog'
       end
     end
   end
